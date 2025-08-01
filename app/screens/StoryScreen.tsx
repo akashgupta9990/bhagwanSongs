@@ -1,27 +1,33 @@
-import { useNavigation } from '@react-navigation/native';
 import * as Speech from "expo-speech";
 import { useState } from "react";
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Breadcrumb } from "../../components/Breadcrumb";
+import BottomNavigation from "../../components/BottomNavigation";
+import { Images } from "./../data/index";
 
 const stories = [
   {
     id: "1",
     title: "राम का वनवास",
     text: "राजा दशरथ ने राम को वनवास भेजा। सीता और लक्ष्मण भी साथ गए...",
-    image: require("../../assets/images/New folder/laxmi_full.png"),
+    image: Images["laxmi_full"],
   },
   {
     id: "2",
     title: "हनुमान और संजीवनी बूटी",
     text: "हनुमान जी ने लंका से संजीवनी बूटी लाकर लक्ष्मण की जान बचाई...",
-    image: require("../../assets/images/New folder/laxmi_full.png"),
+    image: Images["laxmi_full"],
   },
 ];
 
 const StoryScreen = () => {
-  const navigation = useNavigation();
   const [narratingId, setNarratingId] = useState(null);
+
+  const breadcrumbItems = [
+    { label: 'Home', path: '/screens/HomeScreen' },
+    { label: 'Stories' }
+  ];
 
   const handleNarration = (id, text) => {
     if (narratingId === id) {
@@ -62,30 +68,45 @@ const StoryScreen = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black px-4">
-      {/* Breadcrumb */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 8 }}>
-        <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')}>
-          <Text style={{ color: '#9a3412', fontWeight: 'bold', fontSize: 14 }}>Home</Text>
-        </TouchableOpacity>
-        <Text style={{ color: '#9a3412', fontSize: 14 }}>  {'>'}  </Text>
-        <Text style={{ color: '#9a3412', fontWeight: 'bold', fontSize: 14 }}>Stories</Text>
-      </View>
-      <Text className="text-2xl font-bold text-orange-600 dark:text-orange-300 mb-4">
-        📚 Divine Stories
-      </Text>
-      <FlatList
-        data={stories}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+    <View style={styles.wrapper}>
+      <SafeAreaView style={styles.container}>
+        <Breadcrumb items={breadcrumbItems} textColor="#10b981" iconColor="#10b981" backgroundColor="rgba(16, 185, 129, 0.1)" />
+        <Text style={styles.title}>
+          📚 Divine Stories
+        </Text>
+        <FlatList
+          data={stories}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        />
+      </SafeAreaView>
+      <BottomNavigation />
+    </View>
   );
 };
 
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingTop: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ea580c',
+    marginBottom: 16,
+  },
+  listContent: {
+    paddingBottom: 80, // Add padding to avoid overlap with bottom navigation
+  },
   storyContainer: {
     backgroundColor: '#fff',
     marginBottom: 16,

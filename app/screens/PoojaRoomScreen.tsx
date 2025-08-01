@@ -2,30 +2,38 @@ import { Audio } from "expo-av";
 import { useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Breadcrumb } from "../../components/Breadcrumb";
+import BottomNavigation from "../../components/BottomNavigation";
+import { Images } from "../data";
 
 const items = [
   {
     id: "diya",
     label: "Light Diya",
-    image: require("../../assets/images/New folder/laxmi_full.png"),
+    image: Images["laxmi_full"],
     // sound: require("../assets/diya-burn.mp3"), // Commented out until audio files are added
   },
   {
     id: "bell",
     label: "Ring Bell",
-    image: require("../../assets/images/New folder/laxmi_full.png"),
+    image: Images["laxmi_full"],
     // sound: require("../assets/bell.mp3"), // Commented out until audio files are added
   },
   {
     id: "shankh",
     label: "Blow Shankh",
-    image: require("../../assets/images/New folder/laxmi_full.png"),
+    image: Images["laxmi_full"],
     // sound: require("../assets/shankh.mp3"), // Commented out until audio files are added
   },
 ];
 
 const PoojaRoomScreen = () => {
   const [sound, setSound] = useState(null);
+
+  const breadcrumbItems = [
+    { label: 'Home', path: '/screens/HomeScreen' },
+    { label: 'Pooja Room' }
+  ];
 
   async function playSound(soundFile) {
     if (!soundFile) {
@@ -42,29 +50,33 @@ const PoojaRoomScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>
-        🪔 Virtual Pooja Room
-      </Text>
-      <View style={styles.itemsRow}>
-        {items.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.itemButton}
-            onPress={() => playSound(item.sound)}
-          >
-            <Image
-              source={item.image}
-              style={styles.itemImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.itemLabel}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.content}>
+        <Breadcrumb items={breadcrumbItems} textColor="#8b5cf6" iconColor="#8b5cf6" backgroundColor="rgba(139, 92, 246, 0.1)" />
+        <Text style={styles.header}>
+          🪔 Virtual Pooja Room
+        </Text>
+        <View style={styles.itemsRow}>
+          {items.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.itemButton}
+              onPress={() => playSound(null)}
+            >
+              <Image
+                source={item.image}
+                style={styles.itemImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.itemLabel}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </SafeAreaView>
+      <BottomNavigation />
+    </View>
   );
 };
 
@@ -73,9 +85,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
+    paddingBottom: 80, // Add padding to avoid overlap with bottom navigation
   },
   header: {
     fontSize: 24,

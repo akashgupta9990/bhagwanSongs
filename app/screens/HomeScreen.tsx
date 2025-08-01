@@ -1,7 +1,9 @@
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Dimensions, Image, ImageBackground, TouchableOpacity as RNTouchableOpacity, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Images } from '../data';
+import { Breadcrumb } from '../../components/Breadcrumb';
+import BottomNavigation from '../../components/BottomNavigation';
+import { Images, BhagwanScroller } from '../data';
 // Custom TouchableOpacity with default activeOpacity
 const TouchableOpacity = (props: any) => (
   <RNTouchableOpacity activeOpacity={0.7} {...props} />
@@ -10,66 +12,82 @@ const TouchableOpacity = (props: any) => (
 export default function HomeScreen() {
   const router = useRouter();
 
+  const breadcrumbItems = [
+    { label: 'Home' }
+  ];
+
   return (
-   <ImageBackground
-    source={Images["ramSita_1"]}
-    style={styles.backgroundImage}
-    resizeMode="cover"
-  >
-    <ScrollView contentContainerStyle={styles.overlayContainer}>
-      <View style={styles.innerContainer}>
-        {/* Top Avatars */}
-        <View style={styles.avatarRow}>
-          {['ram_1', 'shiv_1', 'laxmi_1', 'durga_1', 'saraswati_1'].map((name, idx) => (
-            <Image
-              key={idx}
-              source={Images[name]}
-              style={styles.avatar}
-            />
-          ))}
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>Bhakti Path</Text>
-
-        {/* Buttons */}
-
-        <TouchableOpacity
-          style={[styles.button, { marginBottom: 12 }]}
-          onPress={() => router.push({ pathname: './audio/audio-player' })}
-        >
-          <Ionicons name="headset" size={24} color="white" />
-          <Text style={styles.buttonText}>Audio</Text>
-        </TouchableOpacity>
-
-
-        <TouchableOpacity
-          style={[styles.button, { marginBottom: 12 }]}
-          onPress={() => router.push({ pathname: './scriptures-screen' })}
-        >
-          <FontAwesome5 name="book" size={24} color="white" />
-          <Text style={styles.buttonText}>Scripture Reader</Text>
-        </TouchableOpacity>
-
-
-        <TouchableOpacity
-          style={[styles.button, { marginBottom: 24 }]}
-          onPress={() => router.push({ pathname: './story-screen' })}
-        >
-          <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
-          <Text style={styles.buttonText}>Stories</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Floating Microphone Button */}
-      <TouchableOpacity
-        style={styles.micButton}
-        onPress={() => console.log('Voice Input Coming Soon!')}
+    <View style={styles.container}>
+      <ImageBackground
+        source={Images["ramSita_1"]}
+        style={styles.backgroundImage}
+        resizeMode="cover"
       >
-        <Ionicons name="mic" size={24} color="white" />
-      </TouchableOpacity>
-    </ScrollView>
-  </ImageBackground>
+        <ScrollView contentContainerStyle={styles.overlayContainer}>
+          {/*<Breadcrumb items={breadcrumbItems} />*/}
+          <View style={styles.innerContainer}>
+            {/* Top Avatars */}
+            <View style={styles.avatarRow}>
+              {BhagwanScroller.map((name, idx) => (
+                <Image
+                  key={idx}
+                  source={Images[name]}
+                  style={styles.avatar}
+                />
+              ))}
+            </View>
+
+            {/* Title */}
+            <Text style={styles.title}>Bhakti Path</Text>
+
+            {/* Buttons */}
+
+            <TouchableOpacity
+              style={[styles.button, { marginBottom: 12 }]}
+              onPress={() => router.push('/screens/audio/audio-player')}
+            >
+              <Ionicons name="headset" size={24} color="white" />
+              <Text style={styles.buttonText}>Audio</Text>
+            </TouchableOpacity>
+
+
+            <TouchableOpacity
+              style={[styles.button, { marginBottom: 12 }]}
+              onPress={() => router.push('/screens/ScripturesScreen')}
+            >
+              <FontAwesome5 name="book" size={24} color="white" />
+              <Text style={styles.buttonText}>Scripture Reader</Text>
+            </TouchableOpacity>
+
+
+            <TouchableOpacity
+              style={[styles.button, { marginBottom: 24 }]}
+              onPress={() => router.push('/screens/StoryScreen')}
+            >
+              <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
+              <Text style={styles.buttonText}>Stories</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.button, { marginBottom: 24 }]}
+                onPress={() => router.push('/screens/PoojaRoomScreen')}
+            >
+              <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
+              <Text style={styles.buttonText}>Virtual Pooja Room</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Floating Microphone Button */}
+          <TouchableOpacity
+            style={styles.micButton}
+            onPress={() => console.log('Voice Input Coming Soon!')}
+          >
+            <Ionicons name="mic" size={24} color="white" />
+          </TouchableOpacity>
+        </ScrollView>
+      </ImageBackground>
+      <BottomNavigation />
+    </View>
   );
 }
 
@@ -150,5 +168,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124, 45, 18, 0)', // lighter overlay for more visible image
     alignItems: 'center',
     paddingTop: 40,
+    paddingBottom: 80, // Add padding to avoid overlap with bottom navigation
   },
 });
