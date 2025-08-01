@@ -7,27 +7,27 @@ const items = [
   {
     id: "diya",
     label: "Light Diya",
-    image: require("@/assets/diya.png"),
-    sound: require("@/assets/diya-burn.mp3")
+    image: require("../../assets/images/New folder/laxmi_full.png"),
+    // sound: require("../assets/diya-burn.mp3"), // Commented out until audio files are added
   },
   {
     id: "bell",
     label: "Ring Bell",
-    image: require("@/assets/images/icon.png"),
-    sound: require("@/assets/bell.mp3")
+    image: require("../../assets/images/New folder/laxmi_full.png"),
+    // sound: require("../assets/bell.mp3"), // Commented out until audio files are added
   },
   {
     id: "shankh",
     label: "Blow Shankh",
-    image: require("@/assets/images/icon.png"),
-    sound: require("@/assets/shankh.mp3")
+    image: require("../../assets/images/New folder/laxmi_full.png"),
+    // sound: require("../assets/shankh.mp3"), // Commented out until audio files are added
   },
 ];
 
-export default function HomeScreen() {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+const PoojaRoomScreen = () => {
+  const [sound, setSound] = useState(null);
 
-  async function playSound(soundFile: any) {
+  async function playSound(soundFile) {
     if (!soundFile) {
       // If no sound file is provided, just show an alert
       alert("Sound feature coming soon!");
@@ -43,10 +43,10 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>
+      <Text style={styles.header}>
         🪔 Virtual Pooja Room
       </Text>
-      <View style={styles.itemsContainer}>
+      <View style={styles.itemsRow}>
         {items.map((item) => (
           <TouchableOpacity
             key={item.id}
@@ -66,23 +66,25 @@ export default function HomeScreen() {
       </View>
     </SafeAreaView>
   );
-}
+};
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
-  title: {
+  header: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ea580c',
+    color: '#ea580c', // orange-600
     marginBottom: 16,
+    marginTop: 8,
   },
-  itemsContainer: {
+  itemsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
@@ -90,27 +92,28 @@ const styles = StyleSheet.create({
   },
   itemButton: {
     alignItems: 'center',
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#fef3c7', // yellow-100
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
     width: '45%',
+    margin: 8,
   },
   itemImage: {
     width: 96,
     height: 96,
     marginBottom: 8,
+    borderRadius: 12,
   },
   itemLabel: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#1f2937',
+    color: '#1f2937', // gray-800
   },
 });
+
+export default PoojaRoomScreen;

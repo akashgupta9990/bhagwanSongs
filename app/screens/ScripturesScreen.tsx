@@ -1,6 +1,6 @@
 import * as Speech from "expo-speech";
 import { useEffect, useRef, useState } from "react";
-import { ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const sampleText = `
@@ -35,21 +35,19 @@ const ScripturesScreen = () => {
   }, [autoScroll]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black px-4">
-      <Text className="text-2xl font-bold text-orange-600 dark:text-orange-300 mb-2">
-        📖 Ramayan Paath
-      </Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.header}>📖 Ramayan Paath</Text>
 
-      <View className="flex-row justify-between items-center mb-2">
-        <View className="flex-row items-center space-x-2">
-          <Text className="text-gray-800 dark:text-white">🔁 Auto-Scroll</Text>
+      <View style={styles.topRow}>
+        <View style={styles.autoScrollRow}>
+          <Text style={styles.autoScrollText}>🔁 Auto-Scroll</Text>
           <Switch value={autoScroll} onValueChange={setAutoScroll} />
         </View>
         <TouchableOpacity
-          className="bg-orange-500 px-4 py-2 rounded-full"
+          style={styles.voiceButton}
           onPress={() => setIsReading(!isReading)}
         >
-          <Text className="text-white font-semibold">
+          <Text style={styles.voiceButtonText}>
             {isReading ? "Stop Voice" : "Start Voice"}
           </Text>
         </TouchableOpacity>
@@ -57,15 +55,71 @@ const ScripturesScreen = () => {
 
       <ScrollView
         ref={scrollRef}
-        className="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-xl"
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text className="text-lg leading-8 text-gray-900 dark:text-white">
+        <Text style={styles.scriptureText}>
           {sampleText.repeat(10)}
         </Text>
       </ScrollView>
     </SafeAreaView>
   );
 };
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ea580c', // orange-600
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  autoScrollRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  autoScrollText: {
+    color: '#1f2937', // gray-800
+    fontSize: 16,
+    marginRight: 8,
+  },
+  voiceButton: {
+    backgroundColor: '#f97316', // orange-500
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 9999,
+  },
+  voiceButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  scrollView: {
+    backgroundColor: '#fef3c7', // yellow-50
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  scriptureText: {
+    fontSize: 18,
+    color: '#111827', // gray-900
+    lineHeight: 28,
+  },
+});
 
 export default ScripturesScreen;
