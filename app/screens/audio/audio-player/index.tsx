@@ -11,6 +11,7 @@ import {
   Platform,
   Modal
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { useAudioPlayer, AudioSource } from 'expo-audio';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -29,8 +30,8 @@ const PlayerScreen = () => {
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<View>(null);
-  const intervalRef = useRef<number | null>(null);
 
   const currentBhajan = Bhajans[currentIndex];
   const player = useAudioPlayer(currentBhajan.audio as AudioSource);
@@ -90,7 +91,7 @@ const PlayerScreen = () => {
       const locationX = event.nativeEvent.locationX ?? event.nativeEvent.offsetX ?? event.nativeEvent.clientX;
 
       if (sliderRef.current) {
-        sliderRef.current.measure((fx, fy, width, height, px, py) => {
+        sliderRef.current.measure((fx, fy, width) => {
           // For web, if locationX is still undefined, calculate from clientX and element position
           let adjustedLocationX = locationX;
 
@@ -115,8 +116,8 @@ const PlayerScreen = () => {
               // Seek to the new position
               try {
                 player.seekTo(newPosition);
-              } catch (error) {
-                console.error('Error seeking to position:', error);
+              } catch {
+                // Silent error handling
               }
             }
           }
@@ -137,7 +138,7 @@ const PlayerScreen = () => {
   useEffect(() => {
     let animationFrame: number | null = null;
 
-    if (isPlaying) {
+    if (isPlaying && !isDragging) {
       const updateProgress = async () => {
         try {
           // Get current position and duration directly from player
@@ -151,8 +152,8 @@ const PlayerScreen = () => {
             setDuration(totalDuration);
           }
 
-          // Continue updating if still playing
-          if (isPlaying) {
+          // Continue updating if still playing and not seeking
+          if (isPlaying && !isDragging) {
             animationFrame = requestAnimationFrame(updateProgress);
           }
         } catch (error) {
@@ -169,7 +170,37 @@ const PlayerScreen = () => {
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [isPlaying, player]);
+  }, [isPlaying, isDragging, player]);
+
+  // Handle pan gesture for sliding seek
+  const handlePanGesture = (event: any) => {
+    if (duration > 0 && sliderRef.current) {
+      sliderRef.current.measure((fx, fy, width) => {
+        const x = event.nativeEvent.x;
+        const percentage = Math.max(0, Math.min(1, x / width));
+        const newPosition = percentage * duration;
+
+        if (isFinite(newPosition) && newPosition >= 0 && newPosition <= duration) {
+          setPosition(newPosition);
+          try {
+            player.seekTo(newPosition);
+          } catch (error) {
+            console.error('Error seeking during slide:', error);
+          }
+        }
+      });
+    }
+  };
+
+  const handlePanStateChange = (event: any) => {
+    const { state } = event.nativeEvent;
+
+    if (state === State.BEGAN) {
+      setIsDragging(true);
+    } else if (state === State.END || state === State.CANCELLED) {
+      setIsDragging(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -225,30 +256,38 @@ const PlayerScreen = () => {
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
               <Text style={styles.timeText}>{formatMillis(position * 1000)}</Text>
-              <TouchableOpacity
-                ref={sliderRef}
-                style={styles.sliderContainer}
-                onPress={handleSeek}
-                activeOpacity={1}
+              <PanGestureHandler
+                onGestureEvent={handlePanGesture}
+                onHandlerStateChange={handlePanStateChange}
+                minDist={0}
               >
-                <View style={styles.progressTrack}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      { width: duration > 0 ? `${(position / duration) * 100}%` : '0%' }
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.progressThumb,
-                      {
-                        left: duration > 0 ? `${(position / duration) * 100}%` : '0%',
-                        transform: [{ translateX: -8 }]
-                      }
-                    ]}
-                  />
+                <View
+                  ref={sliderRef}
+                  style={styles.sliderContainer}
+                >
+                  <TouchableOpacity
+                    style={styles.progressTrack}
+                    onPress={handleSeek}
+                    activeOpacity={1}
+                  >
+                    <View
+                      style={[
+                        styles.progressFill,
+                        { width: duration > 0 ? `${(position / duration) * 100}%` : '0%' }
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.progressThumb,
+                        {
+                          left: duration > 0 ? `${(position / duration) * 100}%` : '0%',
+                          transform: [{ translateX: -8 }]
+                        }
+                      ]}
+                    />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </PanGestureHandler>
               <Text style={styles.timeText}>{formatMillis(duration * 1000)}</Text>
             </View>
 
