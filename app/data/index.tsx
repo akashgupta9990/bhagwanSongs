@@ -33,5 +33,5 @@ export const Bhajans = [
   },
 ];
 
-export const BhagwanScroller = ['ram_1', 'shiv_1', 'laxmi_1', 'durga_1', 'saraswati_1', 'radha_1', 'parvati_1', 'krishna_1', 'hanuman_1', 'ganesha_1'];
+export const BhagwanScroller = ['ram_1', 'shiv_1', 'laxmi_1', 'durga_1', 'saraswati_1', 'radha_1', 'parvati_1', 'krishna_1', 'hanuman_1', 'ganesha_1', 'santoshi_1'];
 
