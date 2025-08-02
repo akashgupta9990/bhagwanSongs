@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 
@@ -89,9 +89,7 @@ const BottomNavigation = () => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(124, 45, 18, 0.95)',
-    paddingVertical: 10,
-    paddingHorizontal: 5,
+    backgroundColor: 'rgba(139, 69, 19, 0.95)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(245, 158, 66, 0.3)',
     position: 'absolute',
@@ -99,10 +97,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    // Use boxShadow for web compatibility
+    ...Platform.select({
+      web: {
+        boxShadow: '0px -2px 4px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+    }),
   },
   tab: {
     flex: 1,

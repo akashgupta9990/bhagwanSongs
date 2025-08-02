@@ -18,10 +18,14 @@ export const Images = {
     },
     laxmi: {
       laxmi: require("../../assets/images/deity/laxmi/laxmi_full.png"),
+    },
+    vishnu: {
+      vishnu_1: require("../../assets/images/deity/vishnu/vishnu_1.png"),
     }
   },
   bg: {
     bg_lotus: require("../../assets/images/bg/lotus_highlight.png"),
+    bg: require("../../assets/images/bg/bg.png"),
   },
   assets: {
     scripture_book: require("../../assets/images/icons/audio.png"),
@@ -31,11 +35,11 @@ export const Images = {
 export const Bhajans = [
   {
     id: "1",
-    title: "Ram Raksha Stotra",
+    title: "Om Jai Jagdish Hare",
     artist: "Anuradha Paudwal",
-    name: "ram",
-    image: Images.deity.ram.ramSita, // Fixed image reference
-    audio: require("../../assets/audio/bell.mp3"),
+    deity: "vishnu",
+    image: Images.deity.vishnu.vishnu_1, // Fixed image reference
+    audio: require("../../assets/audio/om_jai_jagdish_hare.mp3"),
   },
   {
     id: "2",
@@ -43,7 +47,7 @@ export const Bhajans = [
     artist: "Ravindra Sathe",
     name: "shiv",
     image: Images.deity.ram.ramSita, // Using available image for now
-    audio: require("../../assets/audio/shankh.mp3"),
+    audio: require("../../assets/audio/om_jai_jagdish_hare.mp3"),
   },
   {
     id: "3",
@@ -51,7 +55,7 @@ export const Bhajans = [
     artist: "Hariharan",
     name: "hanuman",
     image: Images.deity.ram.ramSita, // Using available image for now
-    audio: require("../../assets/audio/diya-burn.mp3"),
+    audio: require("../../assets/audio/om_jai_jagdish_hare.mp3"),
   },
 ];
 
@@ -59,14 +63,4 @@ export const BhagwanScroller = [
   "ram", "shiv", "laxmi", "durga", "saraswati", "radha", "parvati", "krishna", "hanuman", "ganesh", "santoshi"
 ];
 
-// Default export component required for expo-router
-import React from 'react';
-import { View, Text } from 'react-native';
-
-export default function DataPage() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>This is a data page</Text>
-    </View>
-  );
-}
+export default Images;

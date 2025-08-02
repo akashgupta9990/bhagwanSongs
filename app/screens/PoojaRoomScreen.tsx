@@ -1,6 +1,6 @@
-import { Audio } from "expo-av";
+import { useAudioPlayer } from "expo-audio";
 import { useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Breadcrumb } from "../../components/Breadcrumb";
 import BottomNavigation from "../../components/BottomNavigation";
@@ -28,7 +28,7 @@ const items = [
 ];
 
 const PoojaRoomScreen = () => {
-  const [sound, setSound] = useState(null);
+  const [audioPlayer, setAudioPlayer] = useState(null);
 
   const breadcrumbItems = [
     { label: 'Home', path: '/screens/HomeScreen' },
@@ -41,12 +41,21 @@ const PoojaRoomScreen = () => {
       alert("Sound feature coming soon!");
       return;
     }
-    if (sound) {
-      await sound.unloadAsync();
+
+    try {
+      // If there's an existing player, stop it first
+      if (audioPlayer) {
+        audioPlayer.pause();
+      }
+
+      // Create new audio player with the sound file
+      const player = useAudioPlayer(soundFile);
+      setAudioPlayer(player);
+      player.play();
+    } catch (error) {
+      console.error('Error playing sound:', error);
+      alert("Error playing sound");
     }
-    const { sound: newSound } = await Audio.Sound.createAsync(soundFile);
-    setSound(newSound);
-    await newSound.playAsync();
   }
 
   return (
@@ -111,13 +120,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#fef3c7', // yellow-100
     padding: 16,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
     elevation: 3,
     width: '45%',
     margin: 8,
+    // Use Platform.select for proper shadow handling
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.15)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+    }),
   },
   itemImage: {
     width: 96,
