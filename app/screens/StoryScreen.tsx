@@ -11,13 +11,13 @@ const stories = [
     id: "1",
     title: "राम का वनवास",
     text: "राजा दशरथ ने राम को वनवास भेजा। सीता और लक्ष्मण भी साथ गए...",
-    image: Images["laxmi_full"],
+    image: Images["deity.laxmi.laxmi"],
   },
   {
     id: "2",
     title: "हनुमान और संजीवनी बूटी",
     text: "हनुमान जी ने लंका से संजीवनी बूटी लाकर लक्ष्मण की जान बचाई...",
-    image: Images["laxmi_full"],
+    image: Images["deity.laxmi.laxmi"],
   },
 ];
 

@@ -86,7 +86,7 @@ const ScripturesScreen = () => {
 
             <View style={styles.bookSection}>
               <Image
-                  source={Images["scripture_book"]}
+                  source={Images["deity.laxmi.laxmi"]}
                   style={styles.bookImage}
               />
               <Text style={styles.bookTitle}>Bhagavad Gita</Text>

@@ -10,19 +10,19 @@ const items = [
   {
     id: "diya",
     label: "Light Diya",
-    image: Images["laxmi_full"],
+    image: Images["deity.laxmi.laxmi"],
     // sound: require("../assets/diya-burn.mp3"), // Commented out until audio files are added
   },
   {
     id: "bell",
     label: "Ring Bell",
-    image: Images["laxmi_full"],
+    image: Images["deity.laxmi.laxmi"],
     // sound: require("../assets/bell.mp3"), // Commented out until audio files are added
   },
   {
     id: "shankh",
     label: "Blow Shankh",
-    image: Images["laxmi_full"],
+    image: Images["deity.laxmi.laxmi"],
     // sound: require("../assets/shankh.mp3"), // Commented out until audio files are added
   },
 ];

@@ -1,80 +1,65 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  TouchableOpacity as RNTouchableOpacity,
   Image,
   StyleSheet,
-  FlatList
+  ImageBackground,
+  ScrollView,
+  Dimensions
 } from 'react-native';
-import Slider from '@react-native-community/slider';
-import { Audio } from 'expo-av';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useAudioPlayer, AudioSource } from 'expo-audio';
 import { Ionicons } from '@expo/vector-icons';
 
 import { BhagwanScroller, Bhajans, Images } from '../../../data';
 import { Breadcrumb } from "../../../../components/Breadcrumb";
 import BottomNavigation from "../../../../components/BottomNavigation";
 
+// Custom TouchableOpacity with default activeOpacity
+const TouchableOpacity = (props: any) => (
+  <RNTouchableOpacity activeOpacity={0.7} {...props} />
+);
+
 const PlayerScreen = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const [showPlaylist, setShowPlaylist] = useState(false);
+  const sliderRef = useRef<View>(null);
 
   const currentBhajan = Bhajans[currentIndex];
+  const player = useAudioPlayer(currentBhajan.audio as AudioSource);
 
   useEffect(() => {
-    loadAndPlay(currentBhajan.audio);
+    const subscription = player.addListener('playbackStatusUpdate', (status) => {
+      setIsPlaying(status.playing ?? false);
+      setDuration(status.duration ?? 0);
+      setPosition(status.currentTime ?? 0);
+    });
+
     return () => {
-      unloadSound();
+      subscription.remove();
     };
-  }, [currentIndex]);
+  }, [player]);
 
-  const unloadSound = async () => {
-    if (soundRef.current) {
-      await soundRef.current.unloadAsync();
-      soundRef.current.setOnPlaybackStatusUpdate(null);
-      soundRef.current = null;
+  useEffect(() => {
+    // Load new audio when current index changes
+    if (currentBhajan.audio) {
+      player.replace(currentBhajan.audio as AudioSource);
     }
-  };
-
-  const loadAndPlay = async (audioUri: string) => {
-    try {
-      await unloadSound();
-      const { sound } = await Audio.Sound.createAsync(
-          { uri: audioUri },
-          { shouldPlay: true },
-          onPlaybackStatusUpdate
-      );
-      soundRef.current = sound;
-      setIsPlaying(true);
-    } catch (error) {
-      console.error('Error loading audio:', error);
-    }
-  };
-
-  const onPlaybackStatusUpdate = (status: any) => {
-    if (status.isLoaded) {
-      setDuration(status.durationMillis);
-      setPosition(status.positionMillis);
-      setIsPlaying(status.isPlaying);
-    } else {
-      // Optionally handle error status
-      console.warn('Playback status error:', status);
-    }
-  };
+  }, [currentIndex, player, currentBhajan.audio]);
 
   const togglePlayPause = async () => {
-    if (!soundRef.current) return;
-    const status = await soundRef.current.getStatusAsync();
-    if (status.isLoaded) {
-      if (status.isPlaying) {
-        await soundRef.current.pauseAsync();
+    try {
+      if (isPlaying) {
+        player.pause();
       } else {
-        await soundRef.current.playAsync();
+        player.play();
       }
+    } catch (error) {
+      console.error('Error toggling play/pause:', error);
     }
   };
 
@@ -92,123 +77,180 @@ const PlayerScreen = () => {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  const togglePlaylist = () => {
+    setShowPlaylist(!showPlaylist);
+  };
+
+  const handleSeek = (event: any) => {
+    if (sliderRef.current) {
+      sliderRef.current.measure((x, y, width, height, pageX, pageY) => {
+        const { locationX } = event.nativeEvent;
+        const newPosition = (locationX / width) * duration;
+        player.seekTo(newPosition);
+      });
+    }
+  };
+
   return (
-    <View style={styles.wrapper}>
-      <SafeAreaView style={styles.container}>
-        <Breadcrumb
+    <View style={styles.container}>
+      <ImageBackground
+        source={Images.deity.ram.ramSita}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ScrollView contentContainerStyle={styles.overlayContainer}>
+          <Breadcrumb
             items={[
-              { label: 'Home', path: '/screens/HomeScreen' },
-              { label: 'Audio Player' }
+              { label: 'Home', path: '/' },
+              { label: 'Audio', path: '/screens/audio/audio-menu' },
+              { label: 'Player' }
             ]}
-        />
-
-        {/* Deity Icons Row */}
-        <View style={styles.deityRow}>
-          {BhagwanScroller.map((name, index) => (
-            <Image key={index} source={Images[name]} style={styles.deityIcon} />
-          ))}
-        </View>
-
-        {/* Album Art */}
-        <View style={styles.albumArtContainer}>
-          <Image source={Images[currentBhajan.image]} style={styles.albumArt} />
-        </View>
-
-        {/* Song Info */}
-        <Text style={styles.songTitle}>{currentBhajan.title}</Text>
-        <Text style={styles.artistName}>{currentBhajan.artist}</Text>
-
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <Text style={styles.timeText}>{formatMillis(position)}</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={duration}
-            value={position}
-            onValueChange={async (value) => {
-              if (soundRef.current) {
-                await soundRef.current.setPositionAsync(value);
-              }
-            }}
-            minimumTrackTintColor="#f59e42"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#FFA500"
           />
-          <Text style={styles.timeText}>{formatMillis(duration)}</Text>
-        </View>
 
-        {/* Controls */}
-        <View style={styles.controls}>
-          <TouchableOpacity onPress={handlePrevious} style={styles.controlButton}>
-            <Ionicons name="play-skip-back" size={32} color="#f59e42" />
-          </TouchableOpacity>
+          <View style={styles.innerContainer}>
+            {/* Top Avatars */}
+            <View style={{ height: 80, marginBottom: 20, width: Dimensions.get('window').width, paddingHorizontal: 6 }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ alignItems: 'center' }}
+              >
+                {BhagwanScroller.map((name, idx) => (
+                  <Image
+                    key={idx}
+                    source={Images.icon[name]}
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 28,
+                      borderWidth: 2,
+                      borderColor: '#f59e42',
+                      marginHorizontal: 6,
+                    }}
+                    resizeMode="cover"
+                  />
+                ))}
+              </ScrollView>
+            </View>
 
-          <TouchableOpacity onPress={togglePlayPause} style={styles.playButton}>
+            {/* Album Art */}
+            <View style={styles.albumArtContainer}>
+              <Image source={currentBhajan.image} style={styles.albumArt} resizeMode="contain" />
+            </View>
+
+            {/* Song Info */}
+            <Text style={styles.songTitle}>{currentBhajan.title}</Text>
+            <Text style={styles.artistName}>{currentBhajan.artist}</Text>
+
+            {/* Progress Bar */}
+            <View style={styles.progressContainer}>
+              <Text style={styles.timeText}>{formatMillis(position * 1000)}</Text>
+              <TouchableOpacity
+                ref={sliderRef}
+                style={styles.sliderContainer}
+                onPress={handleSeek}
+                activeOpacity={1}
+              >
+                <View style={styles.progressTrack}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: duration > 0 ? `${(position / duration) * 100}%` : '0%' }
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.progressThumb,
+                      {
+                        left: duration > 0 ? `${(position / duration) * 100}%` : '0%',
+                        transform: [{ translateX: -8 }]
+                      }
+                    ]}
+                  />
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.timeText}>{formatMillis(duration * 1000)}</Text>
+            </View>
+
+            {/* Controls */}
+            <View style={styles.controls}>
+              <TouchableOpacity onPress={handlePrevious} style={styles.controlButton}>
+                <Ionicons name="play-skip-back" size={32} color="#f59e42" />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={togglePlayPause} style={styles.playButton}>
+                <Ionicons
+                  name={isPlaying ? "pause" : "play"}
+                  size={40}
+                  color="white"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
+                <Ionicons name="play-skip-forward" size={32} color="#f59e42" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Playlist */}
+            {showPlaylist && (
+              <View style={styles.playlistContainer}>
+                <Text style={styles.playlistTitle}>Playlist</Text>
+                {Bhajans.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.playlistItem,
+                      index === currentIndex && styles.activePlaylistItem
+                    ]}
+                    onPress={() => setCurrentIndex(index)}
+                  >
+                    <Image source={item.image} style={styles.playlistImage} resizeMode="cover" />
+                    <View style={styles.playlistInfo}>
+                      <Text style={styles.playlistItemTitle}>{item.title}</Text>
+                      <Text style={styles.playlistArtist}>{item.artist}</Text>
+                    </View>
+                    {index === currentIndex && (
+                      <Ionicons name="musical-notes" size={20} color="#f59e42" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        <View style={styles.pullHandleContainer}>
+          <TouchableOpacity style={styles.pullHandle} onPress={togglePlaylist}>
             <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={40}
-              color="white"
+              name={showPlaylist ? "chevron-down" : "chevron-up"}
+              color="#fff"
+              size={24}
             />
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
-            <Ionicons name="play-skip-forward" size={32} color="#f59e42" />
-          </TouchableOpacity>
         </View>
-
-        {/* Playlist */}
-        <FlatList
-          data={Bhajans}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-              style={[
-                styles.playlistItem,
-                index === currentIndex && styles.activePlaylistItem
-              ]}
-              onPress={() => setCurrentIndex(index)}
-            >
-              <Image source={Images[item.image]} style={styles.playlistImage} />
-              <View style={styles.playlistInfo}>
-                <Text style={styles.playlistTitle}>{item.title}</Text>
-                <Text style={styles.playlistArtist}>{item.artist}</Text>
-              </View>
-              {index === currentIndex && (
-                <Ionicons name="musical-notes" size={20} color="#f59e42" />
-              )}
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.playlistContent}
-        />
-      </SafeAreaView>
+      </ImageBackground>
       <BottomNavigation />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
   container: {
     flex: 1,
-    backgroundColor: '#7c2d12',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  },
+  overlayContainer: {
+    flexGrow: 1,
+    paddingTop: 10, // Small top padding instead of centering
+    paddingBottom: 80, // Avoid overlap with bottom navigation
+  },
+  innerContainer: {
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 80, // Add padding to avoid overlap with bottom navigation
-  },
-  deityRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-    gap: 6,
-  },
-  deityIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 2,
-    borderColor: '#FFD700',
   },
   albumArtContainer: {
     alignItems: 'center',
@@ -217,7 +259,6 @@ const styles = StyleSheet.create({
   albumArt: {
     width: 250,
     height: 250,
-    resizeMode: 'contain',
   },
   songTitle: {
     fontSize: 22,
@@ -238,17 +279,51 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: 20,
+    paddingHorizontal: 5,
   },
   timeText: {
     color: '#FFF5E1',
     fontSize: 14,
-    width: 40,
+    width: 45,
     textAlign: 'center',
+    fontWeight: '500',
   },
-  slider: {
+  sliderContainer: {
     flex: 1,
     height: 40,
-    marginHorizontal: 10,
+    marginHorizontal: 15,
+    justifyContent: 'center',
+    paddingVertical: 10,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 3,
+    position: 'relative',
+    width: '100%',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#f59e42',
+    borderRadius: 3,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  progressThumb: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#f59e42',
+    position: 'absolute',
+    top: -6,
+    borderWidth: 2,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 3,
+    elevation: 5,
   },
   controls: {
     flexDirection: 'row',
@@ -273,6 +348,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  playlistContainer: {
+    width: '100%',
+  },
+  playlistTitle: {
+    fontSize: 18,
+    color: '#FFD700',
+    fontWeight: '500',
+    marginBottom: 10,
+  },
   playlistItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -293,7 +377,7 @@ const styles = StyleSheet.create({
   playlistInfo: {
     flex: 1,
   },
-  playlistTitle: {
+  playlistItemTitle: {
     fontSize: 16,
     color: '#FFD700',
     fontWeight: '500',
@@ -302,8 +386,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFF5E1',
   },
-  playlistContent: {
-    paddingBottom: 80, // Add padding to avoid overlap with bottom navigation
+  pullHandleContainer: {
+    position: 'absolute',
+    bottom: 70, // adjust depending on your bottom nav height
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pullHandle: {
+    backgroundColor: '#8B4513', // dark saffron or brownish to match your theme
+    borderRadius: 25,
+    padding: 8,
+    width: 80,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.3)', // Updated for web compatibility
+    elevation: 5,
   },
 });
 

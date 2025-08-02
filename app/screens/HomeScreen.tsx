@@ -19,22 +19,37 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={Images["ramSita_1"]}
+        source={Images.deity.ram.ramSita}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
         <ScrollView contentContainerStyle={styles.overlayContainer}>
-          {/*<Breadcrumb items={breadcrumbItems} />*/}
+          <Breadcrumb items={breadcrumbItems} />
           <View style={styles.innerContainer}>
             {/* Top Avatars */}
-            <View style={styles.avatarRow}>
-              {BhagwanScroller.map((name, idx) => (
-                <Image
-                  key={idx}
-                  source={Images[name]}
-                  style={styles.avatar}
-                />
-              ))}
+            <View style={{ height: 80, marginBottom: 20, width: Dimensions.get('window').width, paddingHorizontal: 6 }}>
+              <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ alignItems: 'center' }}
+              >
+                {BhagwanScroller.map((name, idx) => (
+                    <Image
+                        key={idx}
+                        source={Images.icon[name]}
+                        style={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: 28,
+                          borderWidth: 2,
+                          borderColor: '#f59e42',
+                          marginHorizontal: 6,
+                          marginLeft: 6,
+                          marginRight: 6,
+                        }}
+                    />
+                ))}
+              </ScrollView>
             </View>
 
             {/* Title */}
@@ -44,7 +59,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={[styles.button, { marginBottom: 12 }]}
-              onPress={() => router.push('/screens/audio/audio-player')}
+              onPress={() => router.push('/screens/audio/audio-menu')}
             >
               <Ionicons name="headset" size={24} color="white" />
               <Text style={styles.buttonText}>Audio</Text>
@@ -53,7 +68,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={[styles.button, { marginBottom: 12 }]}
-              onPress={() => router.push('/screens/ScripturesScreen')}
+              onPress={() => router.push('/ScripturesScreen')}
             >
               <FontAwesome5 name="book" size={24} color="white" />
               <Text style={styles.buttonText}>Scripture Reader</Text>
@@ -62,7 +77,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={[styles.button, { marginBottom: 24 }]}
-              onPress={() => router.push('/screens/StoryScreen')}
+              onPress={() => router.push('/StoryScreen')}
             >
               <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
               <Text style={styles.buttonText}>Stories</Text>
@@ -70,7 +85,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
                 style={[styles.button, { marginBottom: 24 }]}
-                onPress={() => router.push('/screens/PoojaRoomScreen')}
+                onPress={() => router.push('/PoojaRoomScreen')}
             >
               <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
               <Text style={styles.buttonText}>Virtual Pooja Room</Text>
@@ -97,8 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#7c2d12', // bg-orange-900
   },
   innerContainer: {
-    alignItems: 'center',
-    paddingTop: 40, // pt-10
+    alignItems: 'center'
   },
   avatarRow: {
     flexDirection: 'row',
@@ -147,7 +161,7 @@ const styles = StyleSheet.create({
   },
   micButton: {
     position: 'absolute',
-    bottom: 40, // bottom-10
+    bottom: 100, // Increased from 40 to avoid overlap with bottom navigation
     right: 20, // right-5
     backgroundColor: '#c2410c', // bg-orange-700
     padding: 16, // p-4

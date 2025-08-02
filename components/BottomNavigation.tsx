@@ -18,7 +18,7 @@ const BottomNavigation = () => {
       name: 'Audio',
       icon: 'headset' as const,
       iconType: 'Ionicons' as const,
-      route: '/screens/audio/audio-player' as const,
+      route: '/screens/audio/audio-menu' as const,
     },
     {
       name: 'Scriptures',
