@@ -4,6 +4,8 @@ import { Dimensions, Image, ImageBackground, TouchableOpacity as RNTouchableOpac
 import { Breadcrumb } from '../../components/Breadcrumb';
 import BottomNavigation from '../../components/BottomNavigation';
 import { Images, BhagwanScroller } from '../data';
+import { useFontSettings } from '../../hooks/useFontSettings';
+
 // Custom TouchableOpacity with default activeOpacity
 const TouchableOpacity = (props: any) => (
   <RNTouchableOpacity activeOpacity={0.7} {...props} />
@@ -11,6 +13,7 @@ const TouchableOpacity = (props: any) => (
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { textStyles } = useFontSettings();
 
   const breadcrumbItems = [
     { label: 'Home' }
@@ -53,42 +56,39 @@ export default function HomeScreen() {
             </View>
 
             {/* Title */}
-            <Text style={styles.title}>Bhakti Path</Text>
+            <Text style={[styles.title, textStyles.h1]}>Bhakti Path</Text>
 
             {/* Buttons */}
-
             <TouchableOpacity
               style={[styles.button, { marginBottom: 12 }]}
               onPress={() => router.push('/screens/audio/audio-menu')}
             >
               <Ionicons name="headset" size={24} color="white" />
-              <Text style={styles.buttonText}>Audio</Text>
+              <Text style={[styles.buttonText, textStyles.body]}>Audio</Text>
             </TouchableOpacity>
-
 
             <TouchableOpacity
               style={[styles.button, { marginBottom: 12 }]}
-              onPress={() => router.push('/ScripturesScreen')}
+              onPress={() => router.push('/screens/scripture/menu')}
             >
               <FontAwesome5 name="book" size={24} color="white" />
-              <Text style={styles.buttonText}>Scripture Reader</Text>
-            </TouchableOpacity>
-
-
-            <TouchableOpacity
-              style={[styles.button, { marginBottom: 24 }]}
-              onPress={() => router.push('/StoryScreen')}
-            >
-              <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
-              <Text style={styles.buttonText}>Stories</Text>
+              <Text style={[styles.buttonText, textStyles.body]}>Scripture</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
                 style={[styles.button, { marginBottom: 24 }]}
-                onPress={() => router.push('/PoojaRoomScreen')}
+                onPress={() => router.push('/screens/PoojaRoomScreen')}
             >
               <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
-              <Text style={styles.buttonText}>Virtual Pooja Room</Text>
+              <Text style={[styles.buttonText, textStyles.body]}>Virtual Pooja Room</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.button, { marginBottom: 24 }]}
+                onPress={() => router.push('/screens/setting/menu')}
+            >
+              <MaterialCommunityIcons name="script-text-outline" size={24} color="white" />
+              <Text style={[styles.buttonText, textStyles.body]}>Setting</Text>
             </TouchableOpacity>
           </View>
 

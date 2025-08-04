@@ -22,21 +22,21 @@ const BottomNavigation = () => {
     },
     {
       name: 'Scriptures',
-      icon: 'book' as const,
-      iconType: 'FontAwesome5' as const,
-      route: '/screens/ScripturesScreen' as const,
-    },
-    {
-      name: 'Stories',
       icon: 'book-open' as const,
       iconType: 'FontAwesome5' as const,
-      route: '/screens/StoryScreen' as const,
+      route: '/screens/scripture/menu' as const,
     },
     {
       name: 'Pooja',
       icon: 'fire' as const,
       iconType: 'FontAwesome5' as const,
       route: '/screens/PoojaRoomScreen' as const,
+    },
+    {
+      name: 'Setting',
+      icon: 'cog' as const,
+      iconType: 'FontAwesome5' as const,
+      route: '/screens/setting/menu' as const,
     },
   ];
 

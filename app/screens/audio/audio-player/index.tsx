@@ -13,11 +13,13 @@ import {
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { useAudioPlayer, AudioSource } from 'expo-audio';
+import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { BhagwanScroller, Bhajans, Images } from '../../../data';
 import { Breadcrumb } from "../../../../components/Breadcrumb";
 import BottomNavigation from "../../../../components/BottomNavigation";
+import { useFontSettings } from '../../../../hooks/useFontSettings';
 
 // Custom TouchableOpacity with default activeOpacity
 const TouchableOpacity = (props: any) => (
@@ -25,6 +27,7 @@ const TouchableOpacity = (props: any) => (
 );
 
 const PlayerScreen = () => {
+  const { textStyles } = useFontSettings();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -33,6 +36,7 @@ const PlayerScreen = () => {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<View>(null);
 
+  const { category } = useLocalSearchParams();
   const currentBhajan = Bhajans[currentIndex];
   const player = useAudioPlayer(currentBhajan.audio as AudioSource);
 
@@ -51,9 +55,28 @@ const PlayerScreen = () => {
   useEffect(() => {
     // Load new audio when current index changes
     if (currentBhajan.audio) {
-      player.replace(currentBhajan.audio as AudioSource);
-      // Reset playing state when changing songs
+      // Reset all playback states immediately when changing tracks
       setIsPlaying(false);
+      setPosition(0);
+      setDuration(0);
+      player.replace(currentBhajan.audio as AudioSource);
+
+      // Get duration immediately after loading new audio
+      const loadDuration = async () => {
+        try {
+          // Small delay to ensure audio is loaded
+          setTimeout(() => {
+            const audioDuration = player.duration;
+            if (audioDuration && audioDuration > 0) {
+              setDuration(audioDuration);
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Error loading duration:', error);
+        }
+      };
+
+      loadDuration();
     }
   }, [currentIndex, player, currentBhajan.audio]);
 
@@ -71,12 +94,30 @@ const PlayerScreen = () => {
     }
   };
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % Bhajans.length);
+  const handleNext = async () => {
+    try {
+      // Stop current audio before switching
+      if (isPlaying) {
+        await player.pause();
+        setIsPlaying(false);
+      }
+      setCurrentIndex((prev) => (prev + 1) % Bhajans.length);
+    } catch (error) {
+      console.error('Error handling next track:', error);
+    }
   };
 
-  const handlePrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + Bhajans.length) % Bhajans.length);
+  const handlePrevious = async () => {
+    try {
+      // Stop current audio before switching
+      if (isPlaying) {
+        await player.pause();
+        setIsPlaying(false);
+      }
+      setCurrentIndex((prev) => (prev - 1 + Bhajans.length) % Bhajans.length);
+    } catch (error) {
+      console.error('Error handling previous track:', error);
+    }
   };
 
   const formatMillis = (millis: number) => {
@@ -214,7 +255,7 @@ const PlayerScreen = () => {
             items={[
               { label: 'Home', path: '/' },
               { label: 'Audio', path: '/screens/audio/audio-menu' },
-              { label: 'Player' }
+              { label: category ? String(category) : 'Player' }
             ]}
           />
 
@@ -250,8 +291,8 @@ const PlayerScreen = () => {
             </View>
 
             {/* Song Info */}
-            <Text style={styles.songTitle}>{currentBhajan.title}</Text>
-            <Text style={styles.artistName}>{currentBhajan.artist}</Text>
+            <Text style={[styles.songTitle, textStyles.title]}>{currentBhajan.title}</Text>
+            <Text style={[styles.artistName, textStyles.artist]}>{currentBhajan.artist}</Text>
 
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
@@ -348,9 +389,18 @@ const PlayerScreen = () => {
                           styles.playlistItem,
                           index === currentIndex && styles.activePlaylistItem
                         ]}
-                        onPress={() => {
-                          setCurrentIndex(index);
-                          closeModal();
+                        onPress={async () => {
+                          try {
+                            // Stop current audio before switching
+                            if (isPlaying) {
+                              await player.pause();
+                              setIsPlaying(false);
+                            }
+                            setCurrentIndex(index);
+                            closeModal();
+                          } catch (error) {
+                            console.error('Error handling playlist selection:', error);
+                          }
                         }}
                       >
                         <Image source={item.image} style={styles.playlistImage} resizeMode="cover" />
