@@ -1,22 +1,23 @@
-import React from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    Dimensions,
-    ImageBackground,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Images } from '../../data';
-import { useFontSettings } from '../../../hooks/useFontSettings';
+import React from 'react';
+import {
+    Alert,
+    Dimensions,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useFontSettings } from '../../../hooks/useFontSettings';
+import { Images } from '../../data';
+import { signUp } from "./../../../authService";
 
 const SignUpScreen = () => {
     const { textStyles } = useFontSettings();
@@ -83,34 +84,42 @@ const SignUpScreen = () => {
 
         setIsLoading(true);
         try {
-            // Add your signup API call here
-            const response = await fetch('https://your-api-endpoint.com/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    fullName: fullName.trim(),
-                    email: email.toLowerCase().trim(),
-                    password: password,
-                }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                // Store user data using auth context
-                await login(data.user, data.token);
-                Alert.alert('Welcome!', 'Account created successfully. Welcome to BhaktiPath!');
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create account');
-            }
-        } catch (error) {
-            console.error('SignUp error:', error);
-            Alert.alert('Sign Up Failed', 'Unable to create account. Please try again.');
+            await signUp(email, password, name);
+            navigation.navigate("Home");
+        } catch (e) {
+            throw new Error(e.message || 'Failed to create account');
         } finally {
             setIsLoading(false);
         }
+        // try {
+        //     // Add your signup API call here
+        //     const response = await fetch('https://your-api-endpoint.com/signup', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({
+        //             fullName: fullName.trim(),
+        //             email: email.toLowerCase().trim(),
+        //             password: password,
+        //         }),
+        //     });
+
+        //     if (response.ok) {
+        //         const data = await response.json();
+        //         // Store user data using auth context
+        //         await login(data.user, data.token);
+        //         Alert.alert('Welcome!', 'Account created successfully. Welcome to BhaktiPath!');
+        //     } else {
+        //         const errorData = await response.json();
+        //         throw new Error(errorData.message || 'Failed to create account');
+        //     }
+        // } catch (error) {
+        //     console.error('SignUp error:', error);
+        //     Alert.alert('Sign Up Failed', 'Unable to create account. Please try again.');
+        // } finally {
+        //     setIsLoading(false);
+        // }
     };
 
     const handleTermsPress = () => {
@@ -123,6 +132,79 @@ const SignUpScreen = () => {
             ]
         );
     };
+
+    const facebookLogin = () => {
+        // 9 — Test flow in development
+
+// Ensure your Facebook app is in Development mode and your Facebook account is a Tester (or Admin).
+
+// Run your Expo app (npx expo start) and open it in Expo Go on your phone.
+
+// Tap Login with Facebook → complete the flow → Firebase should sign you in.
+
+// If you see redirect/URI mismatches, re-check the Valid OAuth Redirect URIs in Facebook and that the Expo redirect URI exactly matches your username & slug.
+
+// 10 — Production steps (when you want to publish)
+
+// Add Privacy Policy URL, Terms of Service, and Contact Email (Settings → Basic). Facebook may require these to make your app public.
+
+// If only email + public_profile are used, you can switch the app to Live without App Review.
+
+// If you requested other scopes, submit for App Review with screencast and justification.
+
+// When building eventual stand-alone apps (EAS build), add Android package name / iOS bundle ID into Facebook settings under Facebook Login → Settings (Android/iOS sections) if you plan to use native OAuth redirects.
+
+        // The expo auth proxy handles redirect URI behind the scenes — that’s why you must add https://auth.expo.io/@<username>/<slug> to Facebook valid URIs
+
+        // import React, { useEffect } from 'react';
+        // import { Button } from 'react-native';
+        // import * as Facebook from 'expo-auth-session/providers/facebook';
+        // import { getAuth, signInWithCredential, FacebookAuthProvider } from 'firebase/auth';
+        // import { initializeApp } from 'firebase/app';
+
+        // // --- initialize firebase (if not already) ---
+        // const firebaseConfig = { /* paste your config */ };
+        // const app = initializeApp(firebaseConfig);
+        // const auth = getAuth(app);
+
+        // // --- component ---
+        // export default function FacebookLogin() {
+        // // Initialize request with your Facebook App ID
+        // const [request, response, promptAsync] = Facebook.useAuthRequest({
+        //     clientId: '<YOUR_FACEBOOK_APP_ID>', // replace with your Facebook App ID
+        //     // redirectUri: makeRedirectUri({ useProxy: true }) // expo uses default proxy
+        // });
+
+        // useEffect(() => {
+        //     if (response?.type === 'success') {
+        //     const { authentication } = response;
+        //     const fbAccessToken = authentication.accessToken;
+        //     const credential = FacebookAuthProvider.credential(fbAccessToken);
+
+        //     // Sign in to Firebase with the Facebook credential
+        //     signInWithCredential(auth, credential)
+        //         .then(userCred => {
+        //         // user is signed in
+        //         console.log('Firebase user:', userCred.user);
+        //         // Optionally save profile to Firestore here
+        //         })
+        //         .catch(err => {
+        //         console.error('Firebase signInWithCredential error', err);
+        //         });
+        //     }
+        // }, [response]);
+
+        // return (
+        //     <Button
+        //     disabled={!request}
+        //     title="Login with Facebook"
+        //     onPress={() => promptAsync()}
+        //     />
+        // );
+        // }
+
+    };
+
     console.log("signup screen")
 
     return (
@@ -273,7 +355,7 @@ const SignUpScreen = () => {
                             <Text style={[styles.socialButtonText, textStyles.body]}>Sign up with Google</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.socialButton}>
+                        <TouchableOpacity style={styles.socialButton} onPress={() => facebookLogin()}>
                             <Ionicons name="logo-facebook" size={20} color="#fde68a" />
                             <Text style={[styles.socialButtonText, textStyles.body]}>Sign up with Facebook</Text>
                         </TouchableOpacity>

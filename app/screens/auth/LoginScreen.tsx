@@ -1,22 +1,23 @@
-import React from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    Dimensions,
-    ImageBackground,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Images } from '../../data';
-import { useFontSettings } from '../../../hooks/useFontSettings';
+import React from 'react';
+import {
+    Alert,
+    Dimensions,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useFontSettings } from '../../../hooks/useFontSettings';
+import { Images } from '../../data';
+import { loginNew } from "./../../../authService";
 
 const LoginScreen = () => {
     const { textStyles } = useFontSettings();
@@ -35,25 +36,26 @@ const LoginScreen = () => {
         setIsLoading(true);
         try {
             // Add your login API call here
-            const response = await fetch('https://your-api-endpoint.com/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email.toLowerCase().trim(),
-                    password: password,
-                }),
-            });
+            // const response = await fetch('https://your-api-endpoint.com/login', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     body: JSON.stringify({
+            //         email: email.toLowerCase().trim(),
+            //         password: password,
+            //     }),
+            // });
 
-            if (response.ok) {
-                const data = await response.json();
-                // Store user data using auth context
-                await login(data.user, data.token);
-                Alert.alert('Welcome!', 'Login successful');
-            } else {
-                throw new Error('Invalid credentials');
-            }
+            // if (response.ok) {
+            //     const data = await response.json();
+            //     // Store user data using auth context
+            //     await login(data.user, data.token);
+            //     Alert.alert('Welcome!', 'Login successful');
+            // } else {
+            //     throw new Error('Invalid credentials');
+            // }
+            await loginNew(email, password);
         } catch (error) {
             console.error('Login error:', error);
             Alert.alert('Login Failed', 'Invalid email or password. Please try again.');
