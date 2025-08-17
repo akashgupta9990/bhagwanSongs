@@ -85,7 +85,7 @@ const SignUpScreen = () => {
         setIsLoading(true);
         try {
             await signUp(email, password, name);
-            navigation.navigate("Home");
+            // navigation.navigate("Home");
         } catch (e) {
             throw new Error(e.message || 'Failed to create account');
         } finally {
