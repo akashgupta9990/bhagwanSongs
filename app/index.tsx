@@ -1,5 +1,10 @@
+import AuthWrapper from '../components/AuthWrapper';
 import HomeScreen from './screens/HomeScreen';
 
 export default function Index() {
-  return <HomeScreen />;
+  return (
+    <AuthWrapper>
+      <HomeScreen />
+    </AuthWrapper>
+  );
 }

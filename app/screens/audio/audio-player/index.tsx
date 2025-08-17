@@ -37,10 +37,19 @@ const PlayerScreen = () => {
   const sliderRef = useRef<View>(null);
 
   const { category } = useLocalSearchParams();
-  const currentBhajan = Bhajans[currentIndex];
-  const player = useAudioPlayer(currentBhajan.audio as AudioSource);
+
+  // Get the correct bhajan list based on category
+  const categoryBhajans = category && typeof category === 'string' ? Bhajans[category as keyof typeof Bhajans] : [];
+  const currentBhajan = categoryBhajans && categoryBhajans[currentIndex];
+
+  // Always call useAudioPlayer hook with a fallback source to avoid conditional hook call
+  const audioSource = currentBhajan?.audio;
+  const player = useAudioPlayer(audioSource as AudioSource);
 
   useEffect(() => {
+    // Only set up listener if we have a valid current bhajan
+    if (!currentBhajan?.audio) return;
+
     const subscription = player.addListener('playbackStatusUpdate', (status) => {
       setIsPlaying(status.playing ?? false);
       setDuration(status.duration ?? 0);
@@ -50,11 +59,11 @@ const PlayerScreen = () => {
     return () => {
       subscription.remove();
     };
-  }, [player]);
+  }, [player, currentBhajan?.audio]);
 
   useEffect(() => {
     // Load new audio when current index changes
-    if (currentBhajan.audio) {
+    if (currentBhajan?.audio) {
       // Reset all playback states immediately when changing tracks
       setIsPlaying(false);
       setPosition(0);
@@ -78,9 +87,11 @@ const PlayerScreen = () => {
 
       loadDuration();
     }
-  }, [currentIndex, player, currentBhajan.audio]);
+  }, [currentIndex, player, currentBhajan?.audio]);
 
   const togglePlayPause = async () => {
+    if (!currentBhajan?.audio) return;
+
     try {
       if (isPlaying) {
         await player.pause();
@@ -95,26 +106,30 @@ const PlayerScreen = () => {
   };
 
   const handleNext = async () => {
+    if (!categoryBhajans?.length) return;
+
     try {
       // Stop current audio before switching
       if (isPlaying) {
         await player.pause();
         setIsPlaying(false);
       }
-      setCurrentIndex((prev) => (prev + 1) % Bhajans.length);
+      setCurrentIndex((prev) => (prev + 1) % categoryBhajans.length);
     } catch (error) {
       console.error('Error handling next track:', error);
     }
   };
 
   const handlePrevious = async () => {
+    if (!categoryBhajans?.length) return;
+
     try {
       // Stop current audio before switching
       if (isPlaying) {
         await player.pause();
         setIsPlaying(false);
       }
-      setCurrentIndex((prev) => (prev - 1 + Bhajans.length) % Bhajans.length);
+      setCurrentIndex((prev) => (prev - 1 + categoryBhajans.length) % categoryBhajans.length);
     } catch (error) {
       console.error('Error handling previous track:', error);
     }
@@ -156,7 +171,7 @@ const PlayerScreen = () => {
 
               // Seek to the new position
               try {
-                player.seekTo(newPosition);
+                player?.seekTo(newPosition);
               } catch {
                 // Silent error handling
               }
@@ -183,8 +198,8 @@ const PlayerScreen = () => {
       const updateProgress = async () => {
         try {
           // Get current position and duration directly from player
-          const currentPos = player.currentTime;
-          const totalDuration = player.duration;
+          const currentPos = player?.currentTime;
+          const totalDuration = player?.duration;
 
           if (currentPos !== undefined && currentPos !== null) {
             setPosition(currentPos);
@@ -224,7 +239,7 @@ const PlayerScreen = () => {
         if (isFinite(newPosition) && newPosition >= 0 && newPosition <= duration) {
           setPosition(newPosition);
           try {
-            player.seekTo(newPosition);
+            player?.seekTo(newPosition);
           } catch (error) {
             console.error('Error seeking during slide:', error);
           }
@@ -287,12 +302,12 @@ const PlayerScreen = () => {
 
             {/* Album Art */}
             <View style={styles.albumArtContainer}>
-              <Image source={currentBhajan.image} style={styles.albumArt} resizeMode="cover" />
+              <Image source={currentBhajan?.image} style={styles.albumArt} resizeMode="cover" />
             </View>
 
             {/* Song Info */}
-            <Text style={[styles.songTitle, textStyles.title]}>{currentBhajan.title}</Text>
-            <Text style={[styles.artistName, textStyles.artist]}>{currentBhajan.artist}</Text>
+            <Text style={[styles.songTitle, textStyles.title]}>{currentBhajan?.title}</Text>
+            <Text style={[styles.artistName, textStyles.subtitle]}>{currentBhajan?.artist}</Text>
 
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
@@ -382,7 +397,7 @@ const PlayerScreen = () => {
                   </View>
 
                   <ScrollView style={styles.playlistScroll}>
-                    {Bhajans.map((item, index) => (
+                    {categoryBhajans?.map((item, index) => (
                       <TouchableOpacity
                         key={index}
                         style={[
@@ -393,7 +408,7 @@ const PlayerScreen = () => {
                           try {
                             // Stop current audio before switching
                             if (isPlaying) {
-                              await player.pause();
+                              await player?.pause();
                               setIsPlaying(false);
                             }
                             setCurrentIndex(index);
