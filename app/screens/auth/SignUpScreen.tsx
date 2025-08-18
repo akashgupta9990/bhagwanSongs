@@ -17,7 +17,15 @@ import {
 import { useAuth } from '../../../contexts/AuthContext';
 import { useFontSettings } from '../../../hooks/useFontSettings';
 import { Images } from '../../data';
-import { signUp } from "./../../../authService";
+import { signUp } from "../../../authService";
+import * as Facebook from 'expo-auth-session/providers/facebook';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
+import { getAuth, signInWithCredential, FacebookAuthProvider, GoogleAuthProvider } from 'firebase/auth';
+import { app } from '../../../firebaseConfig';
+
+// Initialize Firebase app and auth
+const auth = getAuth(app);
 
 const SignUpScreen = () => {
     const { textStyles } = useFontSettings();
@@ -30,6 +38,27 @@ const SignUpScreen = () => {
     const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     const [agreeToTerms, setAgreeToTerms] = React.useState(false);
+
+    const redirectUri = AuthSession.makeRedirectUri({
+        useProxy: true,  // VERY IMPORTANT for web
+        projectNameForProxy: '@aakash.gupta9990/bhaktipath', // exact Expo username/project slug
+    } as any);
+    console.log('Redirect URI:', redirectUri);
+
+    const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
+        clientId: '743391358583937',
+        redirectUri: AuthSession.makeRedirectUri({ useProxy: true } as any),
+    });
+
+    const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
+        clientId: Platform.select({
+            web: '169203011932-b0anm1pvh69u5jvnje7al1muph5sj8dj.apps.googleusercontent.com',
+            android: '169203011932-b0anm1pvh69u5jvnje7al1muph5sj8dj.apps.googleusercontent.com',
+            ios: '169203011932-b0anm1pvh69u5jvnje7al1muph5sj8dj.apps.googleusercontent.com',
+        }),
+        scopes: ['profile', 'email', 'openid'],
+        redirectUri: redirectUri,
+    });
 
     const validateEmail = (email: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -84,42 +113,13 @@ const SignUpScreen = () => {
 
         setIsLoading(true);
         try {
-            await signUp(email, password, name);
-            // navigation.navigate("Home");
+            await signUp(email, password, fullName);
+            router.replace("/");
         } catch (e) {
             throw new Error(e.message || 'Failed to create account');
         } finally {
             setIsLoading(false);
         }
-        // try {
-        //     // Add your signup API call here
-        //     const response = await fetch('https://your-api-endpoint.com/signup', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify({
-        //             fullName: fullName.trim(),
-        //             email: email.toLowerCase().trim(),
-        //             password: password,
-        //         }),
-        //     });
-
-        //     if (response.ok) {
-        //         const data = await response.json();
-        //         // Store user data using auth context
-        //         await login(data.user, data.token);
-        //         Alert.alert('Welcome!', 'Account created successfully. Welcome to BhaktiPath!');
-        //     } else {
-        //         const errorData = await response.json();
-        //         throw new Error(errorData.message || 'Failed to create account');
-        //     }
-        // } catch (error) {
-        //     console.error('SignUp error:', error);
-        //     Alert.alert('Sign Up Failed', 'Unable to create account. Please try again.');
-        // } finally {
-        //     setIsLoading(false);
-        // }
     };
 
     const handleTermsPress = () => {
@@ -133,77 +133,47 @@ const SignUpScreen = () => {
         );
     };
 
-    const facebookLogin = () => {
-        // 9 — Test flow in development
+    // Facebook Login Effect
+    React.useEffect(() => {
+        if (fbResponse?.type === 'success' && fbResponse.authentication?.accessToken) {
+            const fbAccessToken = fbResponse.authentication.accessToken;
+            const credential = FacebookAuthProvider.credential(fbAccessToken);
+            signInWithCredential(auth, credential)
+                .then(async (userCred) => {
+                    await login({
+                        id: userCred.user.uid,
+                        email: userCred.user.email,
+                        name: userCred.user.displayName || '',
+                    }, await userCred.user.getIdToken());
+                    Alert.alert('Welcome!', 'Signed in with Facebook!');
+                })
+                .catch((error) => {
+                    console.error('Facebook Login error:', error);
+                    Alert.alert('Facebook Login Failed', 'Unable to sign in with Facebook.');
+                });
+        }
+    }, [fbResponse, login]);
 
-// Ensure your Facebook app is in Development mode and your Facebook account is a Tester (or Admin).
-
-// Run your Expo app (npx expo start) and open it in Expo Go on your phone.
-
-// Tap Login with Facebook → complete the flow → Firebase should sign you in.
-
-// If you see redirect/URI mismatches, re-check the Valid OAuth Redirect URIs in Facebook and that the Expo redirect URI exactly matches your username & slug.
-
-// 10 — Production steps (when you want to publish)
-
-// Add Privacy Policy URL, Terms of Service, and Contact Email (Settings → Basic). Facebook may require these to make your app public.
-
-// If only email + public_profile are used, you can switch the app to Live without App Review.
-
-// If you requested other scopes, submit for App Review with screencast and justification.
-
-// When building eventual stand-alone apps (EAS build), add Android package name / iOS bundle ID into Facebook settings under Facebook Login → Settings (Android/iOS sections) if you plan to use native OAuth redirects.
-
-        // The expo auth proxy handles redirect URI behind the scenes — that’s why you must add https://auth.expo.io/@<username>/<slug> to Facebook valid URIs
-
-        // import React, { useEffect } from 'react';
-        // import { Button } from 'react-native';
-        // import * as Facebook from 'expo-auth-session/providers/facebook';
-        // import { getAuth, signInWithCredential, FacebookAuthProvider } from 'firebase/auth';
-        // import { initializeApp } from 'firebase/app';
-
-        // // --- initialize firebase (if not already) ---
-        // const firebaseConfig = { /* paste your config */ };
-        // const app = initializeApp(firebaseConfig);
-        // const auth = getAuth(app);
-
-        // // --- component ---
-        // export default function FacebookLogin() {
-        // // Initialize request with your Facebook App ID
-        // const [request, response, promptAsync] = Facebook.useAuthRequest({
-        //     clientId: '<YOUR_FACEBOOK_APP_ID>', // replace with your Facebook App ID
-        //     // redirectUri: makeRedirectUri({ useProxy: true }) // expo uses default proxy
-        // });
-
-        // useEffect(() => {
-        //     if (response?.type === 'success') {
-        //     const { authentication } = response;
-        //     const fbAccessToken = authentication.accessToken;
-        //     const credential = FacebookAuthProvider.credential(fbAccessToken);
-
-        //     // Sign in to Firebase with the Facebook credential
-        //     signInWithCredential(auth, credential)
-        //         .then(userCred => {
-        //         // user is signed in
-        //         console.log('Firebase user:', userCred.user);
-        //         // Optionally save profile to Firestore here
-        //         })
-        //         .catch(err => {
-        //         console.error('Firebase signInWithCredential error', err);
-        //         });
-        //     }
-        // }, [response]);
-
-        // return (
-        //     <Button
-        //     disabled={!request}
-        //     title="Login with Facebook"
-        //     onPress={() => promptAsync()}
-        //     />
-        // );
-        // }
-
-    };
+    // Google Login Effect
+    React.useEffect(() => {
+        if (googleResponse?.type === 'success' && googleResponse.authentication?.accessToken) {
+            const googleAccessToken = googleResponse.authentication.accessToken;
+            const credential = GoogleAuthProvider.credential(null, googleAccessToken);
+            signInWithCredential(auth, credential)
+                .then(async (userCred) => {
+                    await login({
+                        id: userCred.user.uid,
+                        email: userCred.user.email,
+                        name: userCred.user.displayName || '',
+                    }, await userCred.user.getIdToken());
+                    Alert.alert('Welcome!', 'Signed in with Google!');
+                })
+                .catch((error) => {
+                    console.error('Google Login error:', error);
+                    Alert.alert('Google Login Failed', 'Unable to sign in with Google.');
+                });
+        }
+    }, [googleResponse, login]);
 
     console.log("signup screen")
 
@@ -350,12 +320,12 @@ const SignUpScreen = () => {
                         </View>
 
                         {/* Social Sign Up Options */}
-                        <TouchableOpacity style={styles.socialButton}>
+                        <TouchableOpacity style={styles.socialButton} onPress={() => googlePromptAsync()}>
                             <Ionicons name="logo-google" size={20} color="#fde68a" />
                             <Text style={[styles.socialButtonText, textStyles.body]}>Sign up with Google</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.socialButton} onPress={() => facebookLogin()}>
+                        <TouchableOpacity style={styles.socialButton} onPress={() => fbPromptAsync()}>
                             <Ionicons name="logo-facebook" size={20} color="#fde68a" />
                             <Text style={[styles.socialButtonText, textStyles.body]}>Sign up with Facebook</Text>
                         </TouchableOpacity>

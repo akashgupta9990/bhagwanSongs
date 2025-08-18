@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.aakash.gupta9990.bhaktipath"
+      "package": "com.dev.bhaktipath"
     },
     "web": {
       "bundler": "metro",
